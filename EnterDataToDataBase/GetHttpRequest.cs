@@ -7,27 +7,46 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
 namespace EnterDataToDataBase
 {
     public static class GetHttpRequest
     {
         [FunctionName("GetHttpRequest")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+        public static async Task<string> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
-
-            string name = req.Query["name"];
+            var names = new List<string>();
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            var str = Environment.GetEnvironmentVariable("sqldb_connection");
+            using (SqlConnection conn = new SqlConnection(str))
+            {
+            conn.Open();
+                var text = "Select name from Name;";
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+                using (SqlCommand cmd = new SqlCommand(text, conn))
+                {
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var name = reader["Name"].ToString();
+                            names.Add(name);
+                        }
+                    }
+                }
+
+            }
+
+
+            var returnType = JsonConvert.SerializeObject(names);
+            //var returnType = "{"+"\"names\""+":"+ JsonConvert.SerializeObject(names) + "}";
+            return returnType;
         }
     }
 }

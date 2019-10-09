@@ -1,8 +1,43 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+    <script>
+        $(document).ready(function(){
+            $("#TestingButton").click(function () {
+                debugger;
+                $.ajax({
+                    url: "https://enterdatatodatabase.azurewebsites.net/api/GetHttpRequest",
+                    type: 'GET',
+                    crossDomain: true,
+                    headers: {
+                        'Access-Control-Allow-Origin': 'https://enterdatatodatabase.azurewebsites.net/api/GetHttpRequest'
+                    },
+                    dataType: 'json', // added data types
+                    success: function (names) {
+                        var string = "";
+                        $.each(names, function (index) {
+                            string = string + "<h5>" + names[index] + "</h5>"
+                        });
+                        $("#names").html(string);
+                    },
+                    error: function () {
+                        alert("No");
+                    }
+                });
+            });
+        });
+    </script>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+        <form method="post" action="https://enterdatatodatabase.azurewebsites.net/api/DatabaseCleanup?code=hDvKudnQIUMcFHN7pzNNqwmsM8oTjtcSo8oeOyw6CnIgCsQZ9zXPmg==">
+            First name:<br>
+            <input type="text" name="firstname" id="name" value="Diego">
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+        <button id="TestingButton">Button2</button>
+        <div id="names">
+
+        </div>
+    </div>
